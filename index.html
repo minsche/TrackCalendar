@@ -199,8 +199,18 @@
 
     <div class="calendar-grid" id="calendar-container"></div>
 </div>
-
+    
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
 <script>
+const SUPABASE_URL = "https://szaqbfflsghuhycjlluz.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_d0-cMqqacuraYZ4jf9hnAw_5YmZZXs1";
+const TRACKER_ID = "john-newspaper-2026-CHANGE-THIS-TO-SOMETHING-LONG";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let deliveredDays = [];
+    
     const START_DATE = new Date(2026, 4, 4);
     const END_DATE = new Date(2026, 8, 4);
     
@@ -209,7 +219,6 @@
         "2026-05-25"  // Pfingstmontag
     ];
 
-    let deliveredDays = JSON.parse(localStorage.getItem('deliveredPapers2026')) || [];
     let totalScheduledDays = 0;
     let scheduledDaysUntilToday = 0;
 
