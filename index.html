@@ -417,15 +417,21 @@ let deliveredDays = [];
         }
     }
 
-    // Initialize App
+// Initialize App
+async function initApp() {
     calculateTargetDays();
-    deliveredDays = deliveredDays.filter(dateStr => {
+    await loadDeliveredDays();
+
+    deliveredDays = [...new Set(deliveredDays)].filter(dateStr => {
         const d = new Date(dateStr);
         return getDayStatus(d).isTarget;
     });
-    
+
     updateMetrics();
     renderCalendar();
+}
+
+initApp();
 </script>
 </body>
 </html>
