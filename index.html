@@ -297,20 +297,47 @@ let deliveredDays = [];
         document.getElementById('ratio-percentage').textContent = `${ratio}%`;
     }
 
-    function toggleDay(dateStr, isTarget) {
-        if (!isTarget) return;
+async function toggleDay(dateStr, isTarget) {
+    if (!isTarget) return;
 
-        const index = deliveredDays.indexOf(dateStr);
-        if (index > -1) {
-            deliveredDays.splice(index, 1);
-        } else {
-            deliveredDays.push(dateStr);
+    const index = deliveredDays.indexOf(dateStr);
+
+    if (index > -1) {
+        const { error } = await supabaseClient
+            .from('newspaper_deliveries')
+            .delete()
+            .eq('tracker_id', TRACKER_ID)
+            .eq('date', dateStr);
+
+        if (error) {
+            alert("Fehler beim Entfernen.");
+            console.error(error);
+            return;
         }
 
-        localStorage.setItem('deliveredPapers2026', JSON.stringify(deliveredDays));
-        updateMetrics();
-        renderCalendar();
+        deliveredDays.splice(index, 1);
+    } else {
+        const { error } = await supabaseClient
+            .from('newspaper_deliveries')
+            .upsert({
+                tracker_id: TRACKER_ID,
+                date: dateStr,
+                delivered: true
+            });
+
+        if (error) {
+            alert("Fehler beim Speichern.");
+            console.error(error);
+            return;
+        }
+
+        deliveredDays.push(dateStr);
     }
+
+    deliveredDays = [...new Set(deliveredDays)];
+    updateMetrics();
+    renderCalendar();
+}
 
     // NEW: Download data as a JSON file
     function exportData() {
