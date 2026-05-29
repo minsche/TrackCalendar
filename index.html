@@ -246,6 +246,21 @@ let deliveredDays = [];
         return { isTarget: true, type: 'scheduled' };
     }
 
+    async function loadDeliveredDays() {
+    const { data, error } = await supabaseClient
+        .from('newspaper_deliveries')
+        .select('date')
+        .eq('tracker_id', TRACKER_ID)
+        .eq('delivered', true);
+
+    if (error) {
+        alert("Fehler beim Laden der Daten.");
+        console.error(error);
+        return;
+    }
+
+    deliveredDays = data.map(row => row.date);
+
     function calculateTargetDays() {
         let total = 0;
         let untilToday = 0;
