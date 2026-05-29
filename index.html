@@ -302,6 +302,18 @@ async function toggleDay(dateStr, isTarget) {
 
     const index = deliveredDays.indexOf(dateStr);
 
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const clickedDate = new Date(year, month - 1, day);
+    clickedDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (index === -1 && clickedDate > today) {
+        alert("Zukünftige Liefertage können noch nicht markiert werden.");
+        return;
+    }
+
     if (index > -1) {
         const { error } = await supabaseClient
             .from('newspaper_deliveries')
