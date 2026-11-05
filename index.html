@@ -163,7 +163,8 @@
             font-size: 0.8rem;
         }
 
-        .day.out-of-range {
+    .day.paused{background:#fff1c9;color:#806000;cursor:not-allowed}
+    .day.out-of-range {
             color: #ccc;
             cursor: default;
         }
@@ -173,9 +174,9 @@
 
 <div class="container">
     <header>
-        <h1>Zeitung Liefer-Tracker (Bremen 2026)</h1>
+        <h1>Zeitung Liefer-Tracker (Bremen 2026/27)</h1>
         <h3>Johns persönlicher Weser Kurier Lieferstatus Tracker</h3>
-        <p>Zeitraum: 4 Monate ab dem 4. Mai 2026 (Exklusive Sonntage & Feiertage)</p>
+        <p>Zeitraum: 1. November 2026 bis 31. Mai 2027</p>
     </header>
 
     <div class="dashboard">
@@ -199,7 +200,7 @@
         <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(this)">
     </div>
 
-    <div class="calendar-grid" id="calendar-container"></div>
+<section class="month-card" style="margin-bottom:20px"><h3>Lieferpausen</h3><form id="pause-form"><input type="date" id="pause-from" required min="2026-11-01" max="2027-05-31"><input type="date" id="pause-to" required min="2026-11-01" max="2027-05-31"><button class="btn">Speichern</button><button type="button" class="btn" onclick="resetPause()">Abbrechen</button></form><div id="pause-list"></div></section><section class="month-card" style="margin-bottom:20px"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn" onclick="archiveOld()">Alte Saison archivieren</button></section><div class="calendar-grid" id="calendar-container"></div>
 </div>
     
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -207,19 +208,17 @@
 <script>
 const SUPABASE_URL = "https://szaqbfflsghuhycjlluz.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_d0-cMqqacuraYZ4jf9hnAw_5YmZZXs1";
-const TRACKER_ID = "john-newspaper-2026-k8xP92mQv7zL41bR";
+const TRACKER_ID = "john-newspaper-2026-27-k8xP92mQv7zL41bR";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let deliveredDays = [];
+let pauses=[];let archive=[];let editId=null;
     
-    const START_DATE = new Date(2026, 4, 4);
-    const END_DATE = new Date(2026, 8, 4);
+    const START_DATE = new Date(2026, 10, 1);
+    const END_DATE = new Date(2027, 5, 1);
     
-    const BREMEN_HOLIDAYS_2026 = [
-        "2026-05-14", // Christi Himmelfahrt
-        "2026-05-25"  // Pfingstmontag
-    ];
+    const BREMEN_HOLIDAYS_2026 = ["2026-12-25","2026-12-26","2027-01-01","2027-03-26","2027-03-29","2027-05-01","2027-05-06","2027-05-17"];
 
     let totalScheduledDays = 0;
     let scheduledDaysUntilToday = 0;
@@ -238,10 +237,12 @@ let deliveredDays = [];
         return BREMEN_HOLIDAYS_2026.includes(dateString);
     }
 
+    function paused(s){return pauses.some(p=>s>=p.start_date&&s<=p.end_date)}
     function getDayStatus(date) {
-        if (date < START_DATE || date >= END_DATE || date.getMonth() > 7) {
+        if (date < START_DATE || date >= END_DATE) {
             return { isTarget: false, type: 'out-of-range' };
         }
+        if(paused(getLocalDateString(date)))return {isTarget:false,type:'paused'};
         if (date.getDay() === 0 || isBremenHoliday(date)) {
             return { isTarget: false, type: 'excluded' };
         }
@@ -272,7 +273,7 @@ let deliveredDays = [];
         today.setHours(0,0,0,0);
         
         while (current < END_DATE) {
-            if (current.getMonth() <= 7) {
+            {
                 const status = getDayStatus(current);
                 if (status.isTarget) {
                     total++;
@@ -291,7 +292,7 @@ let deliveredDays = [];
     }
 
     function updateMetrics() {
-        const actualCount = deliveredDays.length;
+        const actualCount = deliveredDays.filter(s=>getDayStatus(new Date(s+"T12:00:00")).isTarget).length;
         document.getElementById('target-days').textContent = `${scheduledDaysUntilToday} (von ${totalScheduledDays})`;
         document.getElementById('actual-days').textContent = actualCount;
         
@@ -402,13 +403,13 @@ async function toggleDay(dateStr, isTarget) {
         const container = document.getElementById('calendar-container');
         container.innerHTML = '';
         
-        for (let month = 4; month <= 7; month++) {
+        for (let mi=0;mi<7;mi++) {const year=mi<2?2026:2027;const month=mi<2?mi+10:mi-2;
             const monthCard = document.createElement('div');
             monthCard.className = 'month-card';
 
             const title = document.createElement('div');
             title.className = 'month-title';
-            title.textContent = `${monthNames[month]} 2026`;
+            title.textContent = `${monthNames[month]} ${year}`;
             monthCard.appendChild(title);
 
             const daysHeader = document.createElement('div');
@@ -423,7 +424,7 @@ async function toggleDay(dateStr, isTarget) {
             const daysGrid = document.createElement('div');
             daysGrid.className = 'days-grid';
 
-            const firstDayOfMonth = new Date(2026, month, 1);
+            const firstDayOfMonth = new Date(year, month, 1);
             const lastDayOfMonth = new Date(2026, month + 1, 0);
             
             for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
@@ -433,7 +434,7 @@ async function toggleDay(dateStr, isTarget) {
             }
 
             for (let d = 1; d <= lastDayOfMonth.getDate(); d++) {
-                const currentDate = new Date(2026, month, d);
+                const currentDate = new Date(year, month, d);
                 const dateStr = getLocalDateString(currentDate);
                 const status = getDayStatus(currentDate);
 
@@ -446,7 +447,7 @@ async function toggleDay(dateStr, isTarget) {
                         dayCell.classList.add('delivered');
                     }
                     dayCell.addEventListener('click', () => toggleDay(dateStr, true));
-                } else if (status.type === 'excluded') {
+                } else if(status.type==='paused'){dayCell.title='Lieferpause';} else if (status.type === 'excluded') {
                     dayCell.title = currentDate.getDay() === 0 ? "Sonntag" : "Feiertag (Bremen)";
                 }
 
@@ -458,10 +459,48 @@ async function toggleDay(dateStr, isTarget) {
         }
     }
 
+
+async function loadExtras(){
+ const [a,b]=await Promise.all([supabaseClient.from('newspaper_pauses').select('*').eq('season_id',TRACKER_ID),supabaseClient.from('newspaper_seasons').select('*')]);
+ if(a.error||b.error){alert('Datenbankfehler: '+(a.error||b.error).message);return}
+ pauses=a.data;archive=b.data;renderExtras();
+}
+function resetPause(){editId=null;document.getElementById('pause-form').reset()}
+function renderExtras(){
+ const root=document.getElementById('pause-list');root.replaceChildren();
+ pauses.forEach(p=>{const line=document.createElement('p');line.textContent=p.start_date+' – '+p.end_date+' ';
+ const e=document.createElement('button');e.textContent='Bearbeiten';e.className='btn';e.onclick=()=>{editId=p.id;document.getElementById('pause-from').value=p.start_date;document.getElementById('pause-to').value=p.end_date};
+ const d=document.createElement('button');d.textContent='Löschen';d.className='btn';d.onclick=async()=>{if(!confirm('Pause löschen?'))return;const r=await supabaseClient.from('newspaper_pauses').delete().eq('id',p.id);if(r.error)return alert(r.error.message);await reloadExtras()};
+ line.append(e,d);root.append(line)});
+ const hist=document.getElementById('archive-list');hist.replaceChildren();
+ archive.forEach(a=>{const p=document.createElement('p');p.textContent=a.start_date+' – '+a.end_date+': '+a.delivered_days+' / '+a.expected_days+' ('+Number(a.delivery_rate).toFixed(1)+' %)';hist.append(p)})
+}
+async function reloadExtras(){await loadExtras();calculateTargetDays();updateMetrics();renderCalendar()}
+document.getElementById('pause-form').onsubmit=async ev=>{
+ ev.preventDefault();const start=document.getElementById('pause-from').value,end=document.getElementById('pause-to').value;
+ if(start>end||start<'2026-11-01'||end>'2027-05-31')return alert('Ungültiger Zeitraum');
+ if(pauses.some(p=>p.id!==editId&&start<=p.end_date&&end>=p.start_date))return alert('Überschneidende Pausen');
+ const q=editId?supabaseClient.from('newspaper_pauses').update({start_date:start,end_date:end}).eq('id',editId):supabaseClient.from('newspaper_pauses').insert({season_id:TRACKER_ID,start_date:start,end_date:end});
+ const r=await q;if(r.error)return alert(r.error.message);resetPause();await reloadExtras();
+};
+async function archiveOld(){
+ if(archive.some(a=>a.season_id==='2026-summer'))return alert('Bereits archiviert');
+ if(!confirm('Alte Saison archivieren? Alte Einträge bleiben erhalten.'))return;
+ const r=await supabaseClient.from('newspaper_deliveries').select('date').eq('tracker_id','john-newspaper-2026-k8xP92mQv7zL41bR').eq('delivered',true);
+ if(r.error)return alert(r.error.message);
+ const found=new Set(r.data.map(x=>x.date));let expected=0,done=0,pausedCount=0;
+ for(let d=new Date(2026,4,4);d<=new Date(2026,7,31);d.setDate(d.getDate()+1)){
+ const s=getLocalDateString(d),off=d.getDay()===0||['2026-05-14','2026-05-25'].includes(s),pause=s>='2026-07-06'&&s<='2026-07-15';
+ if(pause&&!off)pausedCount++;if(!off&&!pause){expected++;if(found.has(s))done++}
+ }
+ const save=await supabaseClient.from('newspaper_seasons').insert({season_id:'2026-summer',start_date:'2026-05-04',end_date:'2026-08-31',expected_days:expected,delivered_days:done,missed_days:expected-done,paused_days:pausedCount,delivery_rate:expected?100*done/expected:0});
+ if(save.error)return alert(save.error.message);await reloadExtras();
+}
+
 // Initialize App
 async function initApp() {
     calculateTargetDays();
-    await loadDeliveredDays();
+    await Promise.all([loadDeliveredDays(),loadExtras()]);
 
     deliveredDays = [...new Set(deliveredDays)].filter(dateStr => {
         const d = new Date(dateStr);
