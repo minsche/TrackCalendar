@@ -177,13 +177,13 @@
 .utility-card{margin-bottom:18px;padding:20px}
 .utility-card h3{font-size:1.1rem;margin:0 0 18px}
 .pause-form{display:flex;flex-direction:column;gap:14px}
-.date-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.date-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:12px}
 .date-fields label{display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:600;color:#586477;min-width:0}
 .date-fields input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;padding:10px 8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#263445;font-family:inherit;font-size:16px;min-height:44px;-webkit-appearance:auto;appearance:auto}
 .form-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 #pause-list:not(:empty){margin-top:14px}
 #pause-list p{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:8px 0;font-size:14px}
-@media(max-width:480px){body{padding:14px}.utility-card{padding:16px}.backup-controls .btn{flex:1 1 150px}.form-actions .btn{flex:1 1 auto}.date-fields{gap:9px}.date-fields input{padding:10px 5px;font-size:15px}}
+@media(max-width:480px){body{padding:14px}.utility-card{padding:16px}.backup-controls .btn{flex:1 1 150px}.form-actions .btn{flex:1 1 auto}.date-fields{column-gap:14px;row-gap:10px}.date-fields input{padding:10px 5px;font-size:15px}}
     </style>
 </head>
 <body>
