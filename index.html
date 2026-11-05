@@ -168,6 +168,22 @@
             color: #ccc;
             cursor: default;
         }
+
+/* Compact mobile-friendly controls */
+.backup-controls{flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.btn{font-family:inherit;font-size:14px;font-weight:600;line-height:1.3;padding:10px 14px;border-radius:8px;min-height:40px;white-space:normal}
+.btn-outline{background:#f1f4f8;color:#39465a;border:1px solid #d9e0e9}
+.btn-outline:hover{background:#e4eaf2}
+.utility-card{margin-bottom:18px;padding:20px}
+.utility-card h3{font-size:1.1rem;margin:0 0 18px}
+.pause-form{display:flex;flex-direction:column;gap:14px}
+.date-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.date-fields label{display:flex;flex-direction:column;gap:7px;font-size:13px;font-weight:600;color:#586477;min-width:0}
+.date-fields input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;padding:10px 8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#263445;font-family:inherit;font-size:16px;min-height:44px;-webkit-appearance:auto;appearance:auto}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#pause-list:not(:empty){margin-top:14px}
+#pause-list p{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:8px 0;font-size:14px}
+@media(max-width:480px){body{padding:14px}.utility-card{padding:16px}.backup-controls .btn{flex:1 1 150px}.form-actions .btn{flex:1 1 auto}.date-fields{gap:9px}.date-fields input{padding:10px 5px;font-size:15px}}
     </style>
 </head>
 <body>
@@ -200,7 +216,7 @@
         <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(this)">
     </div>
 
-<section class="month-card" style="margin-bottom:20px"><h3>Lieferpausen</h3><form id="pause-form"><input type="date" id="pause-from" required min="2026-11-01" max="2027-05-31"><input type="date" id="pause-to" required min="2026-11-01" max="2027-05-31"><button class="btn">Speichern</button><button type="button" class="btn" onclick="resetPause()">Abbrechen</button></form><div id="pause-list"></div></section><section class="month-card" style="margin-bottom:20px"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn" onclick="archiveOld()">Alte Saison archivieren</button></section><div class="calendar-grid" id="calendar-container"></div>
+<section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><div class="date-fields"><label for="pause-from">Von<input type="date" id="pause-from" required min="2026-11-01" max="2027-05-31"></label><label for="pause-to">Bis (inklusive)<input type="date" id="pause-to" required min="2026-11-01" max="2027-05-31"></label></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section><div class="calendar-grid" id="calendar-container"></div>
 </div>
     
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
