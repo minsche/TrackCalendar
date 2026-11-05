@@ -184,7 +184,12 @@
 #pause-list:not(:empty){margin-top:14px}
 #pause-list p{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:8px 0;font-size:14px}
 @media(max-width:480px){body{padding:14px}.utility-card{padding:16px}.backup-controls .btn{flex:1 1 150px}.form-actions .btn{flex:1 1 auto}.date-fields{column-gap:14px;row-gap:10px}.date-fields input{padding:10px 5px;font-size:15px}}
-    </style>
+
+.range-trigger{width:100%;min-height:48px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#334155;display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;font:inherit;font-size:15px;cursor:pointer}
+#range-label{flex:1}.range-chevron{color:#64748b}.range-picker{border:1px solid #dbe3ed;border-radius:12px;padding:12px;background:#fff;box-shadow:0 4px 16px #15253b12}.range-picker[hidden]{display:none}
+.range-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.range-nav-btn{border:0;background:#f1f5f9;border-radius:8px;width:40px;height:40px;font-size:26px;color:#334155}.range-nav-btn:disabled{opacity:.3}.range-weekdays,.range-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.range-weekdays{font-size:12px;color:#64748b;margin-bottom:6px}.range-day{border:0;background:transparent;border-radius:8px;aspect-ratio:1;min-height:36px;font:inherit;font-size:14px;color:#334155}.range-day:not(:disabled){cursor:pointer}.range-day:disabled{opacity:.25}.range-day.in-range{background:#e0ecfa;border-radius:0}.range-day.endpoint{background:#4a5568;color:white;border-radius:8px}.range-day.today{outline:1px solid #94a3b8}#range-hint{font-size:12px;color:#64748b;margin:10px 0 0}
+.pause-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #edf0f5}.pause-dates{flex:1;min-width:0;font-size:14px;font-weight:500}.pause-actions{display:flex;gap:4px}.pause-icon{width:36px;height:36px;border:0;background:#f1f5f9;border-radius:8px;font-size:17px;color:#475569}.pause-icon.delete{color:#a53c3c;background:#fff1f2}
+</style>
 </head>
 <body>
 
@@ -216,7 +221,7 @@
         <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(this)">
     </div>
 
-<section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><div class="date-fields"><label for="pause-from">Von<input type="date" id="pause-from" required min="2026-11-01" max="2027-05-31"></label><label for="pause-to">Bis (inklusive)<input type="date" id="pause-to" required min="2026-11-01" max="2027-05-31"></label></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section><div class="calendar-grid" id="calendar-container"></div>
+<section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><button type="button" id="range-trigger" class="range-trigger" aria-expanded="false" onclick="toggleRangePicker()">📅 <span id="range-label">Zeitraum auswählen</span><span class="range-chevron">▾</span></button><div id="range-picker" class="range-picker" hidden><div class="range-nav"><button type="button" class="range-nav-btn" onclick="changeRangeMonth(-1)" aria-label="Vorheriger Monat">‹</button><strong id="range-month-title"></strong><button type="button" class="range-nav-btn" onclick="changeRangeMonth(1)" aria-label="Nächster Monat">›</button></div><div class="range-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="range-days" class="range-days"></div><p id="range-hint">Startdatum antippen, danach Enddatum auswählen.</p></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section><div class="calendar-grid" id="calendar-container"></div>
 </div>
     
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -481,20 +486,45 @@ async function loadExtras(){
  if(a.error||b.error){alert('Datenbankfehler: '+(a.error||b.error).message);return}
  pauses=a.data;archive=b.data;renderExtras();
 }
-function resetPause(){editId=null;document.getElementById('pause-form').reset()}
+
+let rangeStart=null,rangeEnd=null,rangeMonth=new Date(2026,10,1);
+const rangeMin='2026-11-01',rangeMax='2027-05-31';
+function prettyDate(s){return s?new Date(s+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'}):''}
+function updateRangeLabel(){document.getElementById('range-label').textContent=rangeStart?(prettyDate(rangeStart)+(rangeEnd?' – '+prettyDate(rangeEnd):' – Enddatum wählen')):'Zeitraum auswählen'}
+function resetPause(){editId=null;rangeStart=null;rangeEnd=null;updateRangeLabel();document.getElementById('range-picker').hidden=true;document.getElementById('range-trigger').setAttribute('aria-expanded','false')}
+function toggleRangePicker(){const el=document.getElementById('range-picker');el.hidden=!el.hidden;document.getElementById('range-trigger').setAttribute('aria-expanded',String(!el.hidden));if(!el.hidden)renderRangePicker()}
+function changeRangeMonth(offset){const next=new Date(rangeMonth.getFullYear(),rangeMonth.getMonth()+offset,1);if(next<new Date(2026,10,1)||next>new Date(2027,4,1))return;rangeMonth=next;renderRangePicker()}
+function pickRangeDay(s){if(!rangeStart||rangeEnd||s<rangeStart){rangeStart=s;rangeEnd=null}else{rangeEnd=s;document.getElementById('range-picker').hidden=true;document.getElementById('range-trigger').setAttribute('aria-expanded','false')}updateRangeLabel();renderRangePicker()}
+function renderRangePicker(){
+ const y=rangeMonth.getFullYear(),m=rangeMonth.getMonth(),title=document.getElementById('range-month-title'),grid=document.getElementById('range-days');title.textContent=rangeMonth.toLocaleDateString('de-DE',{month:'long',year:'numeric'});grid.replaceChildren();
+ const nav=document.querySelectorAll('.range-nav-btn');nav[0].disabled=y===2026&&m===10;nav[1].disabled=y===2027&&m===4;
+ const offset=(new Date(y,m,1).getDay()+6)%7;for(let i=0;i<offset;i++)grid.append(document.createElement('span'));
+ const count=new Date(y,m+1,0).getDate();
+ for(let d=1;d<=count;d++){const s=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),btn=document.createElement('button');btn.type='button';btn.textContent=d;btn.className='range-day';btn.disabled=s<rangeMin||s>rangeMax;
+ if(s===rangeStart||s===rangeEnd)btn.classList.add('endpoint');else if(rangeStart&&rangeEnd&&s>rangeStart&&s<rangeEnd)btn.classList.add('in-range');
+ if(s===getLocalDateString(new Date()))btn.classList.add('today');btn.onclick=()=>pickRangeDay(s);grid.append(btn)}
+ document.getElementById('range-hint').textContent=!rangeStart?'Startdatum auswählen':!rangeEnd?'Enddatum auswählen':'Zeitraum ausgewählt';
+}
 function renderExtras(){
  const root=document.getElementById('pause-list');root.replaceChildren();
- pauses.forEach(p=>{const line=document.createElement('p');line.textContent=p.start_date+' – '+p.end_date+' ';
- const e=document.createElement('button');e.textContent='Bearbeiten';e.className='btn';e.onclick=()=>{editId=p.id;document.getElementById('pause-from').value=p.start_date;document.getElementById('pause-to').value=p.end_date};
- const d=document.createElement('button');d.textContent='Löschen';d.className='btn';d.onclick=async()=>{if(!confirm('Pause löschen?'))return;const r=await supabaseClient.from('newspaper_pauses').delete().eq('id',p.id);if(r.error)return alert(r.error.message);await reloadExtras()};
- line.append(e,d);root.append(line)});
+ pauses.sort((a,b)=>a.start_date.localeCompare(b.start_date)).forEach(p=>{
+ const line=document.createElement('div');line.className='pause-row';
+ const label=document.createElement('span');label.className='pause-dates';label.textContent=prettyDate(p.start_date)+' – '+prettyDate(p.end_date);
+ const actions=document.createElement('span');actions.className='pause-actions';
+ const edit=document.createElement('button');edit.type='button';edit.className='pause-icon';edit.textContent='✎';edit.title='Bearbeiten';edit.setAttribute('aria-label','Pause bearbeiten');
+ edit.onclick=()=>{editId=p.id;rangeStart=p.start_date;rangeEnd=p.end_date;rangeMonth=new Date(p.start_date+'T12:00:00');rangeMonth.setDate(1);updateRangeLabel();document.getElementById('range-picker').hidden=false;document.getElementById('range-trigger').setAttribute('aria-expanded','true');renderRangePicker()};
+ const del=document.createElement('button');del.type='button';del.className='pause-icon delete';del.textContent='×';del.title='Löschen';del.setAttribute('aria-label','Pause löschen');
+ del.onclick=async()=>{if(!confirm('Pause löschen?'))return;const r=await supabaseClient.from('newspaper_pauses').delete().eq('id',p.id);if(r.error)return alert(r.error.message);await reloadExtras()};
+ actions.append(edit,del);line.append(label,actions);root.append(line);
+ });
  const hist=document.getElementById('archive-list');hist.replaceChildren();
  archive.forEach(a=>{const p=document.createElement('p');p.textContent=a.start_date+' – '+a.end_date+': '+a.delivered_days+' / '+a.expected_days+' ('+Number(a.delivery_rate).toFixed(1)+' %)';hist.append(p)})
 }
 async function reloadExtras(){await loadExtras();calculateTargetDays();updateMetrics();renderCalendar()}
 document.getElementById('pause-form').onsubmit=async ev=>{
- ev.preventDefault();const start=document.getElementById('pause-from').value,end=document.getElementById('pause-to').value;
- if(start>end||start<'2026-11-01'||end>'2027-05-31')return alert('Ungültiger Zeitraum');
+ ev.preventDefault();const start=rangeStart,end=rangeEnd;
+ if(!start||!end)return alert('Bitte Start- und Enddatum auswählen');
+ if(start>end||start<rangeMin||end>rangeMax)return alert('Ungültiger Zeitraum');
  if(pauses.some(p=>p.id!==editId&&start<=p.end_date&&end>=p.start_date))return alert('Überschneidende Pausen');
  const q=editId?supabaseClient.from('newspaper_pauses').update({start_date:start,end_date:end}).eq('id',editId):supabaseClient.from('newspaper_pauses').insert({season_id:TRACKER_ID,start_date:start,end_date:end});
  const r=await q;if(r.error)return alert(r.error.message);resetPause();await reloadExtras();
