@@ -198,13 +198,9 @@
 <body>
 
 <div class="container">
-    <header>
-        <h1>PaperTracker</h1>
-        <h3>Johns persönlicher Weser Kurier Lieferstatus Tracker</h3>
-        <p>Zeitraum: 1. November 2026 bis 31. Mai 2027</p>
-    </header>
-
-    <div class="dashboard">
+<header class="compact-header"><h1>PaperTracker</h1><p>November 2026 – Mai 2027</p></header>
+<div class="calendar-grid" id="calendar-container"></div>
+<section class="stats-section"><h2 class="section-heading">Lieferstatistik</h2>    <div class="dashboard">
         <div class="stat-card">
             <h3>Soll-Liefertage</h3>
             <div class="value" id="target-days">0</div>
@@ -219,13 +215,17 @@
         </div>
     </div>
 
-    <div class="backup-controls">
+</section>
+<details class="utility-details"><summary>Lieferpausen <span class="detail-hint">Verwalten</span></summary><div class="details-content"><section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><button type="button" id="range-trigger" class="range-trigger" aria-expanded="false" onclick="toggleRangePicker()">📅 <span id="range-label">Zeitraum auswählen</span><span class="range-chevron">▾</span></button><div id="range-picker" class="range-picker" hidden><div class="range-nav"><button type="button" class="range-nav-btn" onclick="changeRangeMonth(-1)" aria-label="Vorheriger Monat">‹</button><strong id="range-month-title"></strong><button type="button" class="range-nav-btn" onclick="changeRangeMonth(1)" aria-label="Nächster Monat">›</button></div><div class="range-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="range-days" class="range-days"></div><p id="range-hint">Startdatum antippen, danach Enddatum auswählen.</p></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section></div></details>
+<details class="utility-details"><summary>Saisonarchiv</summary><div class="details-content"><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section></div></details>
+<details class="utility-details"><summary>Backup &amp; Wiederherstellung</summary><div class="details-content">    <div class="backup-controls">
         <button class="btn" onclick="exportData()">Daten sichern (Backup)</button>
         <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Daten wiederherstellen</button>
         <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(this)">
     </div>
 
-<section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><button type="button" id="range-trigger" class="range-trigger" aria-expanded="false" onclick="toggleRangePicker()">📅 <span id="range-label">Zeitraum auswählen</span><span class="range-chevron">▾</span></button><div id="range-picker" class="range-picker" hidden><div class="range-nav"><button type="button" class="range-nav-btn" onclick="changeRangeMonth(-1)" aria-label="Vorheriger Monat">‹</button><strong id="range-month-title"></strong><button type="button" class="range-nav-btn" onclick="changeRangeMonth(1)" aria-label="Nächster Monat">›</button></div><div class="range-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="range-days" class="range-days"></div><p id="range-hint">Startdatum antippen, danach Enddatum auswählen.</p></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section><div class="calendar-grid" id="calendar-container"></div>
+</div></details>
+
 </div>
     
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
