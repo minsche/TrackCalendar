@@ -193,13 +193,42 @@
 #range-label{flex:1}.range-chevron{color:#64748b}.range-picker{box-sizing:border-box;width:100%;max-width:380px;border:1px solid #dbe3ed;border-radius:12px;padding:12px;background:#fff;box-shadow:0 4px 16px #15253b12}.range-picker[hidden]{display:none}
 .range-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.range-nav-btn{border:0;background:#f1f5f9;border-radius:8px;width:40px;height:40px;font-size:26px;color:#334155}.range-nav-btn:disabled{opacity:.3}.range-weekdays,.range-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.range-weekdays{font-size:12px;color:#64748b;margin-bottom:6px}.range-day{border:0;background:transparent;border-radius:8px;aspect-ratio:1;min-height:36px;font:inherit;font-size:14px;color:#334155}.range-day:not(:disabled){cursor:pointer}.range-day:disabled{opacity:.25}.range-day.in-range{background:#e0ecfa;border-radius:0}.range-day.endpoint{background:#4a5568;color:white;border-radius:8px}.range-day.today{outline:1px solid #94a3b8}#range-hint{font-size:12px;color:#64748b;margin:10px 0 0}
 .pause-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #edf0f5}.pause-dates{flex:1;min-width:0;font-size:14px;font-weight:500}.pause-actions{display:flex;gap:4px}.pause-icon{width:36px;height:36px;border:0;background:#f1f5f9;border-radius:8px;font-size:17px;color:#475569}.pause-icon.delete{color:#a53c3c;background:#fff1f2}
+
+/* PaperTracker brand and mobile-first information hierarchy */
+:root{--bg-color:#eef2ef;--text-main:#25332d;--btn-bg:#30483c;--delivery-day:#e7f1e9;--delivery-border:#b7d2bc;--delivered-bg:#32845c;--off-day-bg:#f5e9e7;--off-day-text:#a34b45}
+body{padding:14px}
+.compact-header{display:flex;align-items:center;gap:12px;margin:2px 0 18px;text-align:left}
+.brand-icon{width:46px;height:46px;border-radius:11px;object-fit:cover;flex:none}
+.compact-header h1{font-size:1.55rem;margin:0;color:#263a2f;letter-spacing:-.03em}
+.compact-header p{margin:3px 0 0;font-size:12px;color:#68766d}
+.stats-section{margin:0 0 20px}
+.section-heading{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#66756a;margin:0 0 9px}
+.stats-section .dashboard{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:0}
+.stats-section .stat-card{padding:15px 6px;border-radius:12px;border:1px solid #e0e9e2;box-shadow:none}
+.stats-section .stat-card h3{font-size:10px;line-height:1.3;letter-spacing:0;text-transform:none;min-height:27px;margin:0 0 5px;color:#607167}
+.stats-section .stat-card .value{font-size:clamp(1.25rem,4vw,1.9rem);color:#2e5840}
+.stats-section .stat-card:last-child{background:#30483c;border-color:#30483c}
+.stats-section .stat-card:last-child h3{color:#c7dacd}
+.stats-section .stat-card:last-child .value{color:#fff}
+.calendar-grid{margin-bottom:24px;gap:12px}
+.month-card{border-radius:12px;border:1px solid #e0e9e2;box-shadow:none}
+.month-title{color:#2f4939}
+.utility-section{margin:16px 0;background:#fff;border:1px solid #e0e9e2;border-radius:12px;padding:15px}
+.utility-section>h2{font-size:1rem;margin:0 0 13px;color:#2c4737}
+.utility-section>.utility-card{padding:0;margin:0;border:0;box-shadow:none}
+.utility-section>.utility-card>h3{display:none}
+.utility-section>.backup-controls{margin:0;justify-content:flex-start;flex-wrap:wrap}
+.btn{border-radius:9px}
+.range-day.endpoint{background:#30483c}
+.range-day.in-range{background:#dcece0}
+@media(max-width:480px){.stats-section .stat-card{padding:12px 4px}.stats-section .stat-card h3{font-size:10px}.utility-section{padding:13px}}
+
 </style>
 </head>
 <body>
 
 <div class="container">
-<header class="compact-header"><h1>PaperTracker</h1><p>November 2026 – Mai 2027</p></header>
-<div class="calendar-grid" id="calendar-container"></div>
+<header class="compact-header"><img class="brand-icon" src="/apple-touch-icon.png" alt="" width="46" height="46"><div><h1>PaperTracker</h1><p>November 2026 – Mai 2027</p></div></header>
 <section class="stats-section"><h2 class="section-heading">Lieferstatistik</h2>    <div class="dashboard">
         <div class="stat-card">
             <h3>Soll-Liefertage</h3>
@@ -216,15 +245,16 @@
     </div>
 
 </section>
-<details class="utility-details"><summary>Lieferpausen <span class="detail-hint">Verwalten</span></summary><div class="details-content"><section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><button type="button" id="range-trigger" class="range-trigger" aria-expanded="false" onclick="toggleRangePicker()">📅 <span id="range-label">Zeitraum auswählen</span><span class="range-chevron">▾</span></button><div id="range-picker" class="range-picker" hidden><div class="range-nav"><button type="button" class="range-nav-btn" onclick="changeRangeMonth(-1)" aria-label="Vorheriger Monat">‹</button><strong id="range-month-title"></strong><button type="button" class="range-nav-btn" onclick="changeRangeMonth(1)" aria-label="Nächster Monat">›</button></div><div class="range-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="range-days" class="range-days"></div><p id="range-hint">Startdatum antippen, danach Enddatum auswählen.</p></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section></div></details>
-<details class="utility-details"><summary>Saisonarchiv</summary><div class="details-content"><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section></div></details>
-<details class="utility-details"><summary>Backup &amp; Wiederherstellung</summary><div class="details-content">    <div class="backup-controls">
+<div class="calendar-grid" id="calendar-container"></div>
+<section class="utility-section"><h2>Lieferpausen</h2><section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><button type="button" id="range-trigger" class="range-trigger" aria-expanded="false" onclick="toggleRangePicker()">📅 <span id="range-label">Zeitraum auswählen</span><span class="range-chevron">▾</span></button><div id="range-picker" class="range-picker" hidden><div class="range-nav"><button type="button" class="range-nav-btn" onclick="changeRangeMonth(-1)" aria-label="Vorheriger Monat">‹</button><strong id="range-month-title"></strong><button type="button" class="range-nav-btn" onclick="changeRangeMonth(1)" aria-label="Nächster Monat">›</button></div><div class="range-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="range-days" class="range-days"></div><p id="range-hint">Startdatum antippen, danach Enddatum auswählen.</p></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section></section>
+<section class="utility-section"><h2>Saisonarchiv</h2><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section></section>
+<section class="utility-section"><h2>Backup &amp; Wiederherstellung</h2>    <div class="backup-controls">
         <button class="btn" onclick="exportData()">Daten sichern (Backup)</button>
         <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Daten wiederherstellen</button>
         <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(this)">
     </div>
 
-</div></details>
+</section>
 
 </div>
     
