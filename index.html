@@ -236,6 +236,9 @@ body{box-sizing:border-box;height:100dvh;min-height:0}
 @media(max-width:480px){.compact-header{margin-bottom:12px}.stats-section{margin-bottom:12px}}
 .day.missed{background:#b5443e!important;color:#fff!important;border-color:#b5443e!important;font-weight:700;position:relative;flex-direction:column;gap:2px}
 .day.missed::after{content:'Nicht geliefert';position:static;font-size:clamp(6px,1.45vw,9px);font-weight:600;line-height:1.1;color:#fff;white-space:nowrap}
+/* Desktop month cards have much narrower day cells: use a clear X instead of overflowing text. */
+@media(min-width:700px){.day.missed::after{content:'✕';font-size:13px;line-height:1}}
+
 .stats-section .dashboard{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:480px){.stats-section .stat-card h3{font-size:9px}.stats-section .stat-card .value{font-size:clamp(1.05rem,3.7vw,1.65rem)}}
 </style>
