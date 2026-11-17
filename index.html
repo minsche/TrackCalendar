@@ -234,6 +234,10 @@ body{box-sizing:border-box;height:100dvh;min-height:0}
 .scroll-content{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:24px}
 .scroll-content .calendar-grid{align-content:start}
 @media(max-width:480px){.compact-header{margin-bottom:12px}.stats-section{margin-bottom:12px}}
+.day.missed{background:#f9e4e2!important;color:#b5443e!important;border-color:#e6b2ae!important;font-weight:700;position:relative}
+.day.missed::after{content:'×';position:absolute;right:2px;top:0;font-size:13px;line-height:1}
+.stats-section .dashboard{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:480px){.stats-section .stat-card h3{font-size:9px}.stats-section .stat-card .value{font-size:clamp(1.05rem,3.7vw,1.65rem)}}
 </style>
 </head>
 <body>
@@ -253,6 +257,7 @@ body{box-sizing:border-box;height:100dvh;min-height:0}
             <h3>Quote (bis heute)</h3>
             <div class="value" id="ratio-percentage">0%</div>
         </div>
+        <div class="stat-card"><h3>Ohne Eintrag</h3><div class="value" id="unrecorded-days">0</div></div>
     </div>
 
 </section>
@@ -280,6 +285,7 @@ const TRACKER_ID = "john-newspaper-2026-27-k8xP92mQv7zL41bR";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let deliveredDays = [];
+let missedDays = [];
 let pauses=[];let archive=[];let editId=null;
     
     const START_DATE = new Date(2026, 10, 1);
@@ -319,9 +325,8 @@ let pauses=[];let archive=[];let editId=null;
     async function loadDeliveredDays() {
     const { data, error } = await supabaseClient
         .from('newspaper_deliveries')
-        .select('date')
-        .eq('tracker_id', TRACKER_ID)
-        .eq('delivered', true);
+        .select('date,delivered')
+        .eq('tracker_id', TRACKER_ID);
 
     if (error) {
         alert("Fehler beim Laden der Daten.");
@@ -329,7 +334,8 @@ let pauses=[];let archive=[];let editId=null;
         return;
     }
 
-    deliveredDays = data.map(row => row.date);
+    deliveredDays = data.filter(r=>r.delivered===true).map(r=>r.date);
+    missedDays = data.filter(r=>r.delivered===false).map(r=>r.date);
     }
     function calculateTargetDays() {
         let total = 0;
@@ -359,67 +365,30 @@ let pauses=[];let archive=[];let editId=null;
     }
 
     function updateMetrics() {
-        const actualCount = deliveredDays.filter(s=>getDayStatus(new Date(s+"T12:00:00")).isTarget).length;
-        document.getElementById('target-days').textContent = `${scheduledDaysUntilToday} (von ${totalScheduledDays})`;
-        document.getElementById('actual-days').textContent = actualCount;
-        
-        const ratio = scheduledDaysUntilToday > 0 ? ((actualCount / scheduledDaysUntilToday) * 100).toFixed(1) : 0;
-        document.getElementById('ratio-percentage').textContent = `${ratio}%`;
+        const valid=s=>getDayStatus(new Date(s+'T12:00:00')).isTarget;
+        const delivered=deliveredDays.filter(valid).length, missed=missedDays.filter(valid).length;
+        const confirmed=delivered+missed;
+        document.getElementById('target-days').textContent=scheduledDaysUntilToday+' (von '+totalScheduledDays+')';
+        document.getElementById('actual-days').textContent=delivered;
+        document.getElementById('ratio-percentage').textContent=confirmed?(100*delivered/confirmed).toFixed(1)+'%':'–';
+        document.getElementById('unrecorded-days').textContent=Math.max(0,scheduledDaysUntilToday-confirmed);
     }
-
-async function toggleDay(dateStr, isTarget) {
-    if (!isTarget) return;
-
-    const index = deliveredDays.indexOf(dateStr);
-
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const clickedDate = new Date(year, month - 1, day);
-    clickedDate.setHours(0, 0, 0, 0);
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (index === -1 && clickedDate > today) {
-        alert("Zukünftige Liefertage können noch nicht markiert werden.");
-        return;
+    async function toggleDay(dateStr,isTarget) {
+        if(!isTarget)return;
+        const date=new Date(dateStr+'T12:00:00'),today=new Date();
+        today.setHours(23,59,59,999);
+        if(date>today){alert('Zukünftige Liefertage können noch nicht markiert werden.');return}
+        const yes=deliveredDays.includes(dateStr),no=missedDays.includes(dateStr);
+        const query=no?supabaseClient.from('newspaper_deliveries').delete().eq('tracker_id',TRACKER_ID).eq('date',dateStr)
+          :supabaseClient.from('newspaper_deliveries').upsert({tracker_id:TRACKER_ID,date:dateStr,delivered:!yes},{onConflict:'tracker_id,date'});
+        const {error}=await query;
+        if(error){alert('Fehler beim Speichern: '+error.message);return}
+        deliveredDays=deliveredDays.filter(s=>s!==dateStr);
+        missedDays=missedDays.filter(s=>s!==dateStr);
+        if(!yes&&!no)deliveredDays.push(dateStr);
+        else if(yes)missedDays.push(dateStr);
+        updateMetrics();renderCalendar();
     }
-
-    if (index > -1) {
-        const { error } = await supabaseClient
-            .from('newspaper_deliveries')
-            .delete()
-            .eq('tracker_id', TRACKER_ID)
-            .eq('date', dateStr);
-
-        if (error) {
-            alert("Fehler beim Entfernen.");
-            console.error(error);
-            return;
-        }
-
-        deliveredDays.splice(index, 1);
-    } else {
-        const { error } = await supabaseClient
-            .from('newspaper_deliveries')
-            .upsert({
-                tracker_id: TRACKER_ID,
-                date: dateStr,
-                delivered: true
-            });
-
-        if (error) {
-            alert("Fehler beim Speichern.");
-            console.error(error);
-            return;
-        }
-
-        deliveredDays.push(dateStr);
-    }
-
-    deliveredDays = [...new Set(deliveredDays)];
-    updateMetrics();
-    renderCalendar();
-}
 
     // NEW: Download data as a JSON file
     function exportData() {
@@ -493,7 +462,7 @@ async function toggleDay(dateStr, isTarget) {
             daysGrid.className = 'days-grid';
 
             const firstDayOfMonth = new Date(year, month, 1);
-            const lastDayOfMonth = new Date(2026, month + 1, 0);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
             
             for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
                 const emptyCell = document.createElement('div');
@@ -511,6 +480,7 @@ async function toggleDay(dateStr, isTarget) {
                 dayCell.textContent = d;
 
                 if (status.isTarget) {
+                    if (missedDays.includes(dateStr)) dayCell.classList.add("missed");
                     if (deliveredDays.includes(dateStr)) {
                         dayCell.classList.add('delivered');
                     }
@@ -600,6 +570,7 @@ async function initApp() {
         return getDayStatus(d).isTarget;
     });
 
+    missedDays = [...new Set(missedDays)].filter(s=>getDayStatus(new Date(s+"T12:00:00")).isTarget);
     updateMetrics();
     renderCalendar();
     // Open the month containing today, without changing the page scroll position.
