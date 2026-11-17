@@ -223,6 +223,10 @@ body{padding:14px}
 .range-day.in-range{background:#dcece0}
 @media(max-width:480px){.stats-section .stat-card{padding:12px 4px}.stats-section .stat-card h3{font-size:10px}.utility-section{padding:13px}}
 
+
+/* Swipeable months: one focused month, adjacent months in either direction */
+.month-carousel{display:flex;overflow-x:auto;overflow-y:hidden;gap:12px;scroll-snap-type:x mandatory;scroll-padding-inline:0;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.month-carousel>.month-card{flex:0 0 100%;box-sizing:border-box;scroll-snap-align:start;min-width:0}
 </style>
 </head>
 <body>
@@ -245,7 +249,7 @@ body{padding:14px}
     </div>
 
 </section>
-<div class="calendar-grid" id="calendar-container"></div>
+<div class="calendar-grid month-carousel" id="calendar-container"></div>
 <section class="utility-section"><h2>Lieferpausen</h2><section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><button type="button" id="range-trigger" class="range-trigger" aria-expanded="false" onclick="toggleRangePicker()">📅 <span id="range-label">Zeitraum auswählen</span><span class="range-chevron">▾</span></button><div id="range-picker" class="range-picker" hidden><div class="range-nav"><button type="button" class="range-nav-btn" onclick="changeRangeMonth(-1)" aria-label="Vorheriger Monat">‹</button><strong id="range-month-title"></strong><button type="button" class="range-nav-btn" onclick="changeRangeMonth(1)" aria-label="Nächster Monat">›</button></div><div class="range-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="range-days" class="range-days"></div><p id="range-hint">Startdatum antippen, danach Enddatum auswählen.</p></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section></section>
 <section class="utility-section"><h2>Saisonarchiv</h2><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section></section>
 <section class="utility-section"><h2>Backup &amp; Wiederherstellung</h2>    <div class="backup-controls">
@@ -461,6 +465,7 @@ async function toggleDay(dateStr, isTarget) {
         for (let mi=0;mi<7;mi++) {const year=mi<2?2026:2027;const month=mi<2?mi+10:mi-2;
             const monthCard = document.createElement('div');
             monthCard.className = 'month-card';
+            monthCard.dataset.month = `${year}-${String(month+1).padStart(2,'0')}`;
 
             const title = document.createElement('div');
             title.className = 'month-title';
@@ -589,6 +594,15 @@ async function initApp() {
 
     updateMetrics();
     renderCalendar();
+    // Open the month containing today, without changing the page scroll position.
+    const today = new Date();
+    const key = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0');
+    const cards = document.querySelectorAll('#calendar-container .month-card');
+    const active = [...cards].find(card => card.dataset.month === key) || (today < new Date(2026,10,1) ? cards[0] : cards[cards.length-1]);
+    if (active) requestAnimationFrame(() => {
+        const scroller = document.getElementById('calendar-container');
+        scroller.scrollLeft = active.offsetLeft - scroller.offsetLeft;
+    });
 }
 
 initApp();
