@@ -225,6 +225,15 @@ body{padding:14px}
 
 
 html{scroll-padding-top:12px}
+
+/* Excel-style frozen header and statistics; only content below scrolls */
+html,body{height:100%;overflow:hidden}
+body{box-sizing:border-box;height:100dvh;min-height:0}
+.container{height:100%;display:flex;flex-direction:column;min-height:0}
+.compact-header,.stats-section{flex:0 0 auto}
+.scroll-content{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:24px}
+.scroll-content .calendar-grid{align-content:start}
+@media(max-width:480px){.compact-header{margin-bottom:12px}.stats-section{margin-bottom:12px}}
 </style>
 </head>
 <body>
@@ -247,7 +256,7 @@ html{scroll-padding-top:12px}
     </div>
 
 </section>
-<div class="calendar-grid" id="calendar-container"></div>
+<main class="scroll-content" id="scroll-content"><div class="calendar-grid" id="calendar-container"></div>
 <section class="utility-section"><h2>Lieferpausen</h2><section class="month-card utility-card"><h3>Lieferpausen</h3><form id="pause-form" class="pause-form"><button type="button" id="range-trigger" class="range-trigger" aria-expanded="false" onclick="toggleRangePicker()">📅 <span id="range-label">Zeitraum auswählen</span><span class="range-chevron">▾</span></button><div id="range-picker" class="range-picker" hidden><div class="range-nav"><button type="button" class="range-nav-btn" onclick="changeRangeMonth(-1)" aria-label="Vorheriger Monat">‹</button><strong id="range-month-title"></strong><button type="button" class="range-nav-btn" onclick="changeRangeMonth(1)" aria-label="Nächster Monat">›</button></div><div class="range-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div><div id="range-days" class="range-days"></div><p id="range-hint">Startdatum antippen, danach Enddatum auswählen.</p></div><div class="form-actions"><button class="btn" type="submit">Pause speichern</button><button type="button" class="btn btn-outline" onclick="resetPause()">Abbrechen</button></div></form><div id="pause-list"></div></section></section>
 <section class="utility-section"><h2>Saisonarchiv</h2><section class="month-card utility-card"><h3>Saisonarchiv</h3><div id="archive-list"></div><button class="btn btn-outline" onclick="archiveOld()">Alte Saison archivieren</button></section></section>
 <section class="utility-section"><h2>Backup &amp; Wiederherstellung</h2>    <div class="backup-controls">
@@ -257,6 +266,7 @@ html{scroll-padding-top:12px}
     </div>
 
 </section>
+</main>
 
 </div>
     
@@ -598,7 +608,8 @@ async function initApp() {
     const cards = document.querySelectorAll('#calendar-container .month-card');
     const active = [...cards].find(card => card.dataset.month === key) || (today < new Date(2026,10,1) ? cards[0] : cards[cards.length-1]);
     if (active) requestAnimationFrame(() => {
-        active.scrollIntoView({block:'start', inline:'nearest', behavior:'instant'});
+        const scroller = document.getElementById('scroll-content');
+        scroller.scrollTop = active.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
     });
 }
 
