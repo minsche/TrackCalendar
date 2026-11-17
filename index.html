@@ -207,9 +207,9 @@ body{padding:14px}
 .stats-section .stat-card{padding:15px 6px;border-radius:12px;border:1px solid #e0e9e2;box-shadow:none}
 .stats-section .stat-card h3{font-size:10px;line-height:1.3;letter-spacing:0;text-transform:none;min-height:27px;margin:0 0 5px;color:#607167}
 .stats-section .stat-card .value{font-size:clamp(1.25rem,4vw,1.9rem);color:#2e5840}
-.stats-section .stat-card:last-child{background:#30483c;border-color:#30483c}
-.stats-section .stat-card:last-child h3{color:#c7dacd}
-.stats-section .stat-card:last-child .value{color:#fff}
+.stats-section .stat-card:nth-child(3){background:#30483c;border-color:#30483c}
+.stats-section .stat-card:nth-child(3) h3{color:#c7dacd}
+.stats-section .stat-card:nth-child(3) .value{color:#fff}
 .calendar-grid{margin-bottom:24px;gap:12px}
 .month-card{border-radius:12px;border:1px solid #e0e9e2;box-shadow:none}
 .month-title{color:#2f4939}
@@ -237,7 +237,7 @@ body{box-sizing:border-box;height:100dvh;min-height:0}
 .day.missed{background:#b5443e!important;color:#fff!important;border-color:#b5443e!important;font-weight:700;position:relative;flex-direction:column;gap:2px}
 .day.missed::after{content:'Nicht geliefert';position:static;font-size:clamp(6px,1.45vw,9px);font-weight:600;line-height:1.1;color:#fff;white-space:nowrap}
 /* Desktop month cards have much narrower day cells: use a clear X instead of overflowing text. */
-@media(min-width:700px){.day.missed::after{content:'✕';font-size:13px;line-height:1}}
+@media(min-width:700px){.day.missed::after{content:none}}
 
 .stats-section .dashboard{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:480px){.stats-section .stat-card h3{font-size:9px}.stats-section .stat-card .value{font-size:clamp(1.05rem,3.7vw,1.65rem)}}
