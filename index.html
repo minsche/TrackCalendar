@@ -241,6 +241,12 @@ body{box-sizing:border-box;height:100dvh;min-height:0}
 
 .stats-section .dashboard{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:480px){.stats-section .stat-card h3{font-size:9px}.stats-section .stat-card .value{font-size:clamp(1.05rem,3.7vw,1.65rem)}}
+/* Keep all desktop month columns and day cells equal, regardless of content. */
+.calendar-grid{grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr))}
+.calendar-grid>.month-card{min-width:0;box-sizing:border-box}
+.days-grid,.days-header{grid-template-columns:repeat(7,minmax(0,1fr));min-width:0}
+.days-grid>.day{min-width:0;box-sizing:border-box;overflow:hidden}
+@media(min-width:700px){.day.missed{gap:0}.day.missed::after{font-size:12px;flex-shrink:0}}
 </style>
 </head>
 <body>
