@@ -234,8 +234,8 @@ body{box-sizing:border-box;height:100dvh;min-height:0}
 .scroll-content{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:24px}
 .scroll-content .calendar-grid{align-content:start}
 @media(max-width:480px){.compact-header{margin-bottom:12px}.stats-section{margin-bottom:12px}}
-.day.missed{background:#f9e4e2!important;color:#b5443e!important;border-color:#e6b2ae!important;font-weight:700;position:relative}
-.day.missed::after{content:'×';position:absolute;right:2px;top:0;font-size:13px;line-height:1}
+.day.missed{background:#b5443e!important;color:#fff!important;border-color:#b5443e!important;font-weight:700;position:relative;flex-direction:column;gap:2px}
+.day.missed::after{content:'Nicht geliefert';position:static;font-size:clamp(6px,1.45vw,9px);font-weight:600;line-height:1.1;color:#fff;white-space:nowrap}
 .stats-section .dashboard{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:480px){.stats-section .stat-card h3{font-size:9px}.stats-section .stat-card .value{font-size:clamp(1.05rem,3.7vw,1.65rem)}}
 </style>
